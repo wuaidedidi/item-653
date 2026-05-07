@@ -26,8 +26,11 @@ until mysqladmin ping --protocol=socket -uroot --silent; do
 done
 
 mysql --protocol=socket -uroot <<SQL
-ALTER USER 'root'@'localhost' IDENTIFIED BY '${DB_PASSWORD}';
+ALTER USER 'root'@'localhost' IDENTIFIED WITH mysql_native_password BY '${DB_PASSWORD}';
+CREATE USER IF NOT EXISTS 'root'@'127.0.0.1' IDENTIFIED WITH mysql_native_password BY '${DB_PASSWORD}';
+GRANT ALL PRIVILEGES ON *.* TO 'root'@'127.0.0.1' WITH GRANT OPTION;
 CREATE DATABASE IF NOT EXISTS \`${DB_NAME}\` CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci;
+FLUSH PRIVILEGES;
 SQL
 
 if [ -f /app/db/init.sql ]; then
