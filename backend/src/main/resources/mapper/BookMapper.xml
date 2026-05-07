@@ -1,0 +1,117 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.library.mapper.BookMapper">
+    
+    <resultMap id="BookResultMap" type="com.library.entity.Book">
+        <id property="id" column="id"/>
+        <result property="isbn" column="isbn"/>
+        <result property="title" column="title"/>
+        <result property="author" column="author"/>
+        <result property="publisher" column="publisher"/>
+        <result property="categoryId" column="category_id"/>
+        <result property="price" column="price"/>
+        <result property="stock" column="stock"/>
+        <result property="available" column="available"/>
+        <result property="coverUrl" column="cover_url"/>
+        <result property="description" column="description"/>
+        <result property="publishDate" column="publish_date"/>
+        <result property="status" column="status"/>
+        <result property="createdAt" column="created_at"/>
+        <result property="updatedAt" column="updated_at"/>
+        <result property="categoryName" column="category_name"/>
+    </resultMap>
+    
+    <select id="findById" resultMap="BookResultMap">
+        SELECT b.*, c.name as category_name 
+        FROM books b 
+        LEFT JOIN categories c ON b.category_id = c.id 
+        WHERE b.id = #{id}
+    </select>
+    
+    <select id="findByIsbn" resultMap="BookResultMap">
+        SELECT b.*, c.name as category_name 
+        FROM books b 
+        LEFT JOIN categories c ON b.category_id = c.id 
+        WHERE b.isbn = #{isbn}
+    </select>
+    
+    <select id="findByPage" resultMap="BookResultMap">
+        SELECT b.*, c.name as category_name 
+        FROM books b 
+        LEFT JOIN categories c ON b.category_id = c.id
+        <where>
+            <if test="keyword != null and keyword != ''">
+                AND (b.title LIKE CONCAT('%', #{keyword}, '%') 
+                     OR b.author LIKE CONCAT('%', #{keyword}, '%')
+                     OR b.isbn LIKE CONCAT('%', #{keyword}, '%'))
+            </if>
+            <if test="categoryId != null">
+                AND b.category_id = #{categoryId}
+            </if>
+            <if test="status != null">
+                AND b.status = #{status}
+            </if>
+        </where>
+        ORDER BY b.created_at DESC
+        LIMIT #{offset}, #{size}
+    </select>
+    
+    <select id="count" resultType="java.lang.Long">
+        SELECT COUNT(*) FROM books b
+        <where>
+            <if test="keyword != null and keyword != ''">
+                AND (b.title LIKE CONCAT('%', #{keyword}, '%') 
+                     OR b.author LIKE CONCAT('%', #{keyword}, '%')
+                     OR b.isbn LIKE CONCAT('%', #{keyword}, '%'))
+            </if>
+            <if test="categoryId != null">
+                AND b.category_id = #{categoryId}
+            </if>
+            <if test="status != null">
+                AND b.status = #{status}
+            </if>
+        </where>
+    </select>
+    
+    <select id="findAll" resultMap="BookResultMap">
+        SELECT b.*, c.name as category_name 
+        FROM books b 
+        LEFT JOIN categories c ON b.category_id = c.id
+        ORDER BY b.created_at DESC
+    </select>
+    
+    <insert id="insert" useGeneratedKeys="true" keyProperty="id">
+        INSERT INTO books (isbn, title, author, publisher, category_id, price, stock, available, cover_url, description, publish_date, status, created_at, updated_at)
+        VALUES (#{isbn}, #{title}, #{author}, #{publisher}, #{categoryId}, #{price}, #{stock}, #{available}, #{coverUrl}, #{description}, #{publishDate}, #{status}, NOW(), NOW())
+    </insert>
+    
+    <update id="update">
+        UPDATE books SET
+            isbn = #{isbn},
+            title = #{title},
+            author = #{author},
+            publisher = #{publisher},
+            category_id = #{categoryId},
+            price = #{price},
+            stock = #{stock},
+            available = #{available},
+            cover_url = #{coverUrl},
+            description = #{description},
+            publish_date = #{publishDate},
+            status = #{status},
+            updated_at = NOW()
+        WHERE id = #{id}
+    </update>
+    
+    <update id="updateStock">
+        UPDATE books SET stock = #{stock}, available = #{available}, updated_at = NOW() WHERE id = #{id}
+    </update>
+    
+    <delete id="deleteById">
+        DELETE FROM books WHERE id = #{id}
+    </delete>
+    
+    <select id="countTotal" resultType="java.lang.Long">
+        SELECT COUNT(*) FROM books
+    </select>
+</mapper>

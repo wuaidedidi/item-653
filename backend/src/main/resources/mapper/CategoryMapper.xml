@@ -1,0 +1,52 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.library.mapper.CategoryMapper">
+    
+    <resultMap id="CategoryResultMap" type="com.library.entity.Category">
+        <id property="id" column="id"/>
+        <result property="name" column="name"/>
+        <result property="description" column="description"/>
+        <result property="sortOrder" column="sort_order"/>
+        <result property="createdAt" column="created_at"/>
+    </resultMap>
+    
+    <select id="findById" resultMap="CategoryResultMap">
+        SELECT * FROM categories WHERE id = #{id}
+    </select>
+    
+    <select id="findByName" resultMap="CategoryResultMap">
+        SELECT * FROM categories WHERE name = #{name}
+    </select>
+    
+    <select id="findAll" resultMap="CategoryResultMap">
+        SELECT * FROM categories
+        <where>
+            <if test="keyword != null and keyword != ''">
+                AND (name LIKE CONCAT('%', #{keyword}, '%') 
+                     OR description LIKE CONCAT('%', #{keyword}, '%'))
+            </if>
+        </where>
+        ORDER BY sort_order ASC, created_at DESC
+    </select>
+    
+    <insert id="insert" useGeneratedKeys="true" keyProperty="id">
+        INSERT INTO categories (name, description, sort_order, created_at)
+        VALUES (#{name}, #{description}, #{sortOrder}, NOW())
+    </insert>
+    
+    <update id="update">
+        UPDATE categories SET
+            name = #{name},
+            description = #{description},
+            sort_order = #{sortOrder}
+        WHERE id = #{id}
+    </update>
+    
+    <delete id="deleteById">
+        DELETE FROM categories WHERE id = #{id}
+    </delete>
+    
+    <select id="countBooks" resultType="int">
+        SELECT COUNT(*) FROM books WHERE category_id = #{categoryId}
+    </select>
+</mapper>

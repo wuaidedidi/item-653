@@ -1,0 +1,98 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.library.mapper.BarrageMapper">
+    
+    <resultMap id="BarrageResultMap" type="com.library.entity.Barrage">
+        <id property="id" column="id"/>
+        <result property="userId" column="user_id"/>
+        <result property="bookId" column="book_id"/>
+        <result property="content" column="content"/>
+        <result property="color" column="color"/>
+        <result property="position" column="position"/>
+        <result property="status" column="status"/>
+        <result property="createdAt" column="created_at"/>
+        <result property="username" column="username"/>
+        <result property="nickname" column="nickname"/>
+        <result property="bookTitle" column="book_title"/>
+    </resultMap>
+    
+    <select id="findById" resultMap="BarrageResultMap">
+        SELECT br.*, u.username, u.nickname, b.title as book_title
+        FROM barrages br
+        LEFT JOIN users u ON br.user_id = u.id
+        LEFT JOIN books b ON br.book_id = b.id
+        WHERE br.id = #{id}
+    </select>
+    
+    <select id="findByBookId" resultMap="BarrageResultMap">
+        SELECT br.*, u.username, u.nickname, b.title as book_title
+        FROM barrages br
+        LEFT JOIN users u ON br.user_id = u.id
+        LEFT JOIN books b ON br.book_id = b.id
+        WHERE br.book_id = #{bookId} AND br.status = 1
+        ORDER BY br.created_at DESC
+        <if test="limit != null">
+            LIMIT #{limit}
+        </if>
+    </select>
+    
+    <select id="findLatest" resultMap="BarrageResultMap">
+        SELECT br.*, u.username, u.nickname, b.title as book_title
+        FROM barrages br
+        LEFT JOIN users u ON br.user_id = u.id
+        LEFT JOIN books b ON br.book_id = b.id
+        WHERE br.status = 1
+        ORDER BY br.created_at DESC
+        <if test="limit != null">
+            LIMIT #{limit}
+        </if>
+    </select>
+    
+    <select id="findByPage" resultMap="BarrageResultMap">
+        SELECT br.*, u.username, u.nickname, b.title as book_title
+        FROM barrages br
+        LEFT JOIN users u ON br.user_id = u.id
+        LEFT JOIN books b ON br.book_id = b.id
+        <where>
+            <if test="bookId != null">
+                AND br.book_id = #{bookId}
+            </if>
+            <if test="userId != null">
+                AND br.user_id = #{userId}
+            </if>
+            <if test="status != null">
+                AND br.status = #{status}
+            </if>
+        </where>
+        ORDER BY br.created_at DESC
+        LIMIT #{offset}, #{size}
+    </select>
+    
+    <select id="count" resultType="java.lang.Long">
+        SELECT COUNT(*) FROM barrages br
+        <where>
+            <if test="bookId != null">
+                AND br.book_id = #{bookId}
+            </if>
+            <if test="userId != null">
+                AND br.user_id = #{userId}
+            </if>
+            <if test="status != null">
+                AND br.status = #{status}
+            </if>
+        </where>
+    </select>
+    
+    <insert id="insert" useGeneratedKeys="true" keyProperty="id">
+        INSERT INTO barrages (user_id, book_id, content, color, position, status, created_at)
+        VALUES (#{userId}, #{bookId}, #{content}, #{color}, #{position}, #{status}, NOW())
+    </insert>
+    
+    <update id="updateStatus">
+        UPDATE barrages SET status = #{status} WHERE id = #{id}
+    </update>
+    
+    <delete id="deleteById">
+        DELETE FROM barrages WHERE id = #{id}
+    </delete>
+</mapper>
